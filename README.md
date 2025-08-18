@@ -6,6 +6,9 @@ A sophisticated Python application that converts images into dice art mosaics.
 
 A Python application that converts images into artistic representations using dice values.
 
+### As a Web App:
+1. Visit [https://hhhpraise.github.io/Dice-Art-Generator/](https://hhhpraise.github.io/Dice-Art-Generator/)
+2. Add to home screen (mobile) or bookmark (desktop)
 ## Features
 
 - Convert any image into a dice art mosaic
