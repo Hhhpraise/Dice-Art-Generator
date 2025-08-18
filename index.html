@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced Dice Art Generator</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: #ecf0f1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: rgba(44, 62, 80, 0.9);
+            padding: 1rem;
+            text-align: center;
+            border-bottom: 2px solid #3498db;
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #3498db;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .main-container {
+            display: flex;
+            flex: 1;
+            gap: 1rem;
+            padding: 1rem;
+            max-height: calc(100vh - 100px);
+        }
+
+        .control-panel {
+            flex: 0 0 350px;
+            background: rgba(52, 73, 94, 0.8);
+            border-radius: 10px;
+            padding: 1rem;
+            overflow-y: auto;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .preview-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .preview-container {
+            display: flex;
+            gap: 1rem;
+            flex: 1;
+        }
+
+        .preview-box {
+            flex: 1;
+            background: rgba(52, 73, 94, 0.8);
+            border-radius: 10px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .preview-title {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+            color: #3498db;
+            text-align: center;
+        }
+
+        .canvas-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #2c3e50;
+            border-radius: 8px;
+            border: 2px dashed #7f8c8d;
+            min-height: 300px;
+            position: relative;
+        }
+
+        canvas {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .canvas-container canvas {
+            display: block;
+        }
+
+        .section {
+            margin-bottom: 1.5rem;
+            background: rgba(44, 62, 80, 0.6);
+            border-radius: 8px;
+            padding: 1rem;
+            border-left: 4px solid #3498db;
+        }
+
+        .section h3 {
+            margin-bottom: 0.8rem;
+            color: #3498db;
+            font-size: 1rem;
+        }
+
+        .form-group {
+            margin-bottom: 1rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.3rem;
+            font-size: 0.9rem;
+            color: #bdc3c7;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            padding: 0.5rem;
+            background: #34495e;
+            border: 1px solid #7f8c8d;
+            border-radius: 4px;
+            color: #ecf0f1;
+            font-size: 0.9rem;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            margin: 0.5rem 0;
+            background: transparent;
+            outline: none;
+        }
+
+        input[type="range"]::-webkit-slider-track {
+            background: #7f8c8d;
+            height: 4px;
+            border-radius: 2px;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            background: #3498db;
+            height: 18px;
+            width: 18px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        select {
+            width: 100%;
+            padding: 0.5rem;
+            background: #34495e;
+            border: 1px solid #7f8c8d;
+            border-radius: 4px;
+            color: #ecf0f1;
+            font-size: 0.9rem;
+        }
+
+        .button {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+            border: none;
+            padding: 0.8rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            background: linear-gradient(135deg, #2980b9 0%, #1f5f8b 100%);
+        }
+
+        .button:disabled {
+            background: #7f8c8d;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .button-group .button {
+            flex: 1;
+            padding: 0.6rem;
+            font-size: 0.8rem;
+        }
+
+        .dice-preview {
+            width: 100px;
+            height: 100px;
+            background: #34495e;
+            border: 2px solid #7f8c8d;
+            border-radius: 8px;
+            margin: 0 auto 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .value-display {
+            font-size: 0.9rem;
+            color: #bdc3c7;
+            margin-top: 0.3rem;
+        }
+
+        .status-bar {
+            background: rgba(44, 62, 80, 0.9);
+            padding: 0.5rem 1rem;
+            border-top: 1px solid #7f8c8d;
+            font-size: 0.9rem;
+            color: #bdc3c7;
+        }
+
+        .no-image-text {
+            color: #7f8c8d;
+            text-align: center;
+            font-style: italic;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #34495e;
+            padding: 2rem;
+            border-radius: 10px;
+            max-width: 400px;
+            width: 90%;
+            border: 1px solid #7f8c8d;
+        }
+
+        .modal-content h3 {
+            color: #3498db;
+            margin-bottom: 1rem;
+        }
+
+        .modal-content textarea {
+            width: 100%;
+            height: 200px;
+            background: #2c3e50;
+            color: #ecf0f1;
+            border: 1px solid #7f8c8d;
+            border-radius: 4px;
+            padding: 0.5rem;
+            font-family: monospace;
+            resize: vertical;
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                flex-direction: column;
+            }
+
+            .control-panel {
+                flex: none;
+                order: 2;
+            }
+
+            .preview-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Enhanced Dice Art Generator</h1>
+    </div>
+
+    <div class="main-container">
+        <div class="control-panel">
+            <!-- Project Management -->
+            <div class="section">
+                <h3>Project</h3>
+                <div class="button-group">
+                    <button class="button" onclick="newProject()">New</button>
+                    <button class="button" onclick="saveProject()">Save</button>
+                    <button class="button" onclick="loadProject()">Load</button>
+                </div>
+            </div>
+
+            <!-- Image Selection -->
+            <div class="section">
+                <h3>Image</h3>
+                <div class="form-group">
+                    <input type="file" id="imageInput" accept="image/*" onchange="loadImage(event)">
+                    <div class="value-display" id="imagePathDisplay">No image selected</div>
+                </div>
+            </div>
+
+            <!-- Dice Size Controls -->
+            <div class="section">
+                <h3>Grid Settings</h3>
+                <div class="form-group">
+                    <label for="diceWidth">Dice Grid Width:</label>
+                    <input type="range" id="diceWidth" min="10" max="150" value="30" oninput="updateSizeLabel()">
+                    <div class="value-display" id="sizeLabel">Grid Size: 30 x ?</div>
+                </div>
+            </div>
+
+            <!-- Image Adjustments -->
+            <div class="section">
+                <h3>Image Adjustments</h3>
+                <div class="form-group">
+                    <label for="brightness">Brightness:</label>
+                    <input type="range" id="brightness" min="0.5" max="2" step="0.1" value="1" oninput="previewAdjustments()">
+                    <div class="value-display" id="brightnessValue">1.0</div>
+                </div>
+                <div class="form-group">
+                    <label for="contrast">Contrast:</label>
+                    <input type="range" id="contrast" min="0.5" max="2" step="0.1" value="1" oninput="previewAdjustments()">
+                    <div class="value-display" id="contrastValue">1.0</div>
+                </div>
+            </div>
+
+            <!-- Dice Settings -->
+            <div class="section">
+                <h3>Dice Settings</h3>
+                <div class="form-group">
+                    <label for="diceColor">Dice Color:</label>
+                    <select id="diceColor" onchange="updateDicePreview()">
+                        <option value="white">White</option>
+                        <option value="black">Black</option>
+                        <option value="wood">Wood</option>
+                        <option value="red">Red</option>
+                        <option value="blue">Blue</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="diceSize">Preview Dice Size:</label>
+                    <input type="range" id="diceSize" min="5" max="50" value="20" oninput="updateDiceSize()">
+                    <div class="value-display" id="diceSizeValue">Dice Size: 20px</div>
+                </div>
+            </div>
+
+            <!-- Dice Preview -->
+            <div class="section">
+                <h3>Dice Preview</h3>
+                <div class="dice-preview">
+                    <canvas id="dicePreview" width="100" height="100"></canvas>
+                </div>
+                <div class="value-display" id="diceCount">Total Dice: 0</div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="section">
+                <button class="button" onclick="generateDiceArt()" style="width: 100%; margin-bottom: 1rem;">
+                    Generate Dice Art
+                </button>
+                <div class="button-group">
+                    <button class="button" onclick="exportDiceGrid()">Export Grid</button>
+                    <button class="button" onclick="exportImage()">Export Image</button>
+                </div>
+                <button class="button" onclick="generateDiceList()" style="width: 100%; margin-top: 0.5rem;">
+                    Dice List
+                </button>
+            </div>
+        </div>
+
+        <div class="preview-area">
+            <div class="preview-container">
+                <div class="preview-box">
+                    <div class="preview-title">Original Image</div>
+                    <div class="canvas-container">
+                        <canvas id="originalCanvas" width="300" height="300"></canvas>
+                        <div class="no-image-text" id="originalPlaceholder">No image loaded</div>
+                    </div>
+                </div>
+                <div class="preview-box">
+                    <div class="preview-title">Dice Art Preview</div>
+                    <div class="canvas-container">
+                        <canvas id="diceArtCanvas" width="300" height="300"></canvas>
+                        <div class="no-image-text" id="diceArtPlaceholder">Generate dice art to see preview</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="status-bar" id="statusBar">Ready</div>
+
+    <!-- Modal for Dice List -->
+    <div id="diceListModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3>Dice Requirements</h3>
+            <textarea id="diceListText" readonly></textarea>
+            <div class="button-group" style="margin-top: 1rem;">
+                <button class="button" onclick="saveDiceList()">Save List</button>
+                <button class="button" onclick="closeDiceListModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden file inputs for project management -->
+    <input type="file" id="projectInput" accept=".json" style="display: none;" onchange="handleProjectLoad(event)">
+    <input type="file" id="projectFileInput" accept=".diceproj" style="display: none;" onchange="handleProjectLoad(event)">
+
+    <script>
+        // Global variables
+        let currentImage = null;
+        let diceGrid = null;
+        let totalDice = 0;
+        let currentProject = null;
+
+        // Dice colors configuration
+        const diceColors = {
+            white: { bg: "#e0e0e0", dot: "#2c3e50" },
+            black: { bg: "#2c3e50", dot: "#e0e0e0" },
+            wood: { bg: "#d2b48c", dot: "#2c3e50" },
+            red: { bg: "#e74c3c", dot: "#f9e9e8" },
+            blue: { bg: "#3498db", dot: "#eaf4fc" }
+        };
+
+        // Dice face patterns
+        const diceFaces = {
+            1: [[0.5, 0.5]],
+            2: [[0.3, 0.3], [0.7, 0.7]],
+            3: [[0.3, 0.3], [0.5, 0.5], [0.7, 0.7]],
+            4: [[0.3, 0.3], [0.3, 0.7], [0.7, 0.3], [0.7, 0.7]],
+            5: [[0.3, 0.3], [0.3, 0.7], [0.5, 0.5], [0.7, 0.3], [0.7, 0.7]],
+            6: [[0.3, 0.3], [0.3, 0.5], [0.3, 0.7], [0.7, 0.3], [0.7, 0.5], [0.7, 0.7]]
+        };
+
+        // Initialize the application
+        function init() {
+            drawDicePreview(3);
+            setStatus("Ready");
+        }
+
+        function setStatus(message) {
+            document.getElementById('statusBar').textContent = message;
+        }
+
+        function newProject() {
+            currentImage = null;
+            diceGrid = null;
+            totalDice = 0;
+            currentProject = null;
+
+            document.getElementById('imageInput').value = '';
+            document.getElementById('imagePathDisplay').textContent = 'No image selected';
+            document.getElementById('diceCount').textContent = 'Total Dice: 0';
+
+            clearCanvas('originalCanvas');
+            clearCanvas('diceArtCanvas');
+            showPlaceholder('originalPlaceholder');
+            showPlaceholder('diceArtPlaceholder');
+
+            setStatus("New project created");
+        }
+
+        function saveProject() {
+            if (!currentImage || !diceGrid) {
+                alert("No dice art to save");
+                return;
+            }
+
+            const projectData = {
+                diceWidth: parseInt(document.getElementById('diceWidth').value),
+                diceColor: document.getElementById('diceColor').value,
+                brightness: parseFloat(document.getElementById('brightness').value),
+                contrast: parseFloat(document.getElementById('contrast').value),
+                diceGrid: diceGrid,
+                totalDice: totalDice,
+                timestamp: new Date().toISOString()
+            };
+
+            const dataStr = JSON.stringify(projectData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(dataBlob);
+            link.download = `dice_project_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.diceproj`;
+            link.click();
+
+            setStatus("Project saved");
+        }
+
+        function loadProject() {
+            document.getElementById('projectFileInput').click();
+        }
+
+        function handleProjectLoad(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const projectData = JSON.parse(e.target.result);
+
+                    // Restore project settings
+                    document.getElementById('diceWidth').value = projectData.diceWidth;
+                    document.getElementById('diceColor').value = projectData.diceColor;
+                    document.getElementById('brightness').value = projectData.brightness;
+                    document.getElementById('contrast').value = projectData.contrast;
+
+                    diceGrid = projectData.diceGrid;
+                    totalDice = projectData.totalDice;
+
+                    // Update UI
+                    updateSizeLabel();
+                    updateValueDisplays();
+                    document.getElementById('diceCount').textContent = `Total Dice: ${totalDice}`;
+
+                    if (diceGrid && diceGrid.length > 0) {
+                        createDiceArtPreview();
+                        drawDicePreview(diceGrid[0][0]);
+                    }
+
+                    setStatus("Project loaded successfully");
+                } catch (error) {
+                    alert("Failed to load project: " + error.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function loadImage(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            if (!file.type.startsWith('image/')) {
+                alert('Please select a valid image file');
+                return;
+            }
+
+            setStatus(`Loading image: ${file.name}`);
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const img = new Image();
+                img.onload = function() {
+                    currentImage = img;
+                    displayImage(img);
+                    updateSizeLabel();
+                    setStatus(`Loaded image: ${file.name}`);
+                };
+                img.onerror = function() {
+                    alert('Failed to load image. Please try a different file.');
+                    setStatus('Error loading image');
+                };
+                img.src = e.target.result;
+            };
+            reader.onerror = function() {
+                alert('Failed to read file');
+                setStatus('Error reading file');
+            };
+            reader.readAsDataURL(file);
+
+            document.getElementById('imagePathDisplay').textContent = file.name;
+        }
+
+        function displayImage(img) {
+            const canvas = document.getElementById('originalCanvas');
+            const ctx = canvas.getContext('2d');
+
+            // Calculate display size maintaining aspect ratio
+            const maxSize = 280; // Slightly smaller to fit in container
+            let displayWidth = img.width;
+            let displayHeight = img.height;
+
+            if (displayWidth > maxSize || displayHeight > maxSize) {
+                const ratio = Math.min(maxSize / displayWidth, maxSize / displayHeight);
+                displayWidth = Math.floor(displayWidth * ratio);
+                displayHeight = Math.floor(displayHeight * ratio);
+            }
+
+            canvas.width = displayWidth;
+            canvas.height = displayHeight;
+            canvas.style.display = 'block';
+
+            // Clear and draw image
+            ctx.clearRect(0, 0, displayWidth, displayHeight);
+
+            // Apply adjustments
+            const brightness = parseFloat(document.getElementById('brightness').value);
+            const contrast = parseFloat(document.getElementById('contrast').value);
+
+            // Draw image
+            ctx.drawImage(img, 0, 0, displayWidth, displayHeight);
+
+            // Apply adjustments if needed
+            if (brightness !== 1.0 || contrast !== 1.0) {
+                const imageData = ctx.getImageData(0, 0, displayWidth, displayHeight);
+                const data = imageData.data;
+
+                for (let i = 0; i < data.length; i += 4) {
+                    // Apply brightness
+                    data[i] = data[i] * brightness;     // Red
+                    data[i + 1] = data[i + 1] * brightness; // Green
+                    data[i + 2] = data[i + 2] * brightness; // Blue
+
+                    // Apply contrast
+                    data[i] = ((data[i] - 128) * contrast) + 128;
+                    data[i + 1] = ((data[i + 1] - 128) * contrast) + 128;
+                    data[i + 2] = ((data[i + 2] - 128) * contrast) + 128;
+
+                    // Clamp values
+                    data[i] = Math.max(0, Math.min(255, data[i]));
+                    data[i + 1] = Math.max(0, Math.min(255, data[i + 1]));
+                    data[i + 2] = Math.max(0, Math.min(255, data[i + 2]));
+                }
+
+                ctx.putImageData(imageData, 0, 0);
+            }
+
+            hidePlaceholder('originalPlaceholder');
+        }
+
+        function applyImageAdjustments(img) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            canvas.width = img.width;
+            canvas.height = img.height;
+
+            ctx.drawImage(img, 0, 0);
+
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imageData.data;
+
+            const brightness = parseFloat(document.getElementById('brightness').value);
+            const contrast = parseFloat(document.getElementById('contrast').value);
+
+            for (let i = 0; i < data.length; i += 4) {
+                // Apply brightness
+                data[i] *= brightness;     // Red
+                data[i + 1] *= brightness; // Green
+                data[i + 2] *= brightness; // Blue
+
+                // Apply contrast
+                data[i] = ((data[i] - 128) * contrast) + 128;
+                data[i + 1] = ((data[i + 1] - 128) * contrast) + 128;
+                data[i + 2] = ((data[i + 2] - 128) * contrast) + 128;
+
+                // Clamp values
+                data[i] = Math.max(0, Math.min(255, data[i]));
+                data[i + 1] = Math.max(0, Math.min(255, data[i + 1]));
+                data[i + 2] = Math.max(0, Math.min(255, data[i + 2]));
+            }
+
+            ctx.putImageData(imageData, 0, 0);
+
+            const adjustedImg = new Image();
+            adjustedImg.src = canvas.toDataURL();
+            return adjustedImg;
+        }
+
+        function previewAdjustments() {
+            updateValueDisplays();
+            if (currentImage) {
+                displayImage(currentImage);
+            }
+        }
+
+        function updateValueDisplays() {
+            document.getElementById('brightnessValue').textContent =
+                parseFloat(document.getElementById('brightness').value).toFixed(1);
+            document.getElementById('contrastValue').textContent =
+                parseFloat(document.getElementById('contrast').value).toFixed(1);
+        }
+
+        function updateSizeLabel() {
+            if (!currentImage) {
+                document.getElementById('sizeLabel').textContent = "Grid Size: 30 x ?";
+                return;
+            }
+
+            const width = parseInt(document.getElementById('diceWidth').value);
+            const aspectRatio = currentImage.height / currentImage.width;
+            const height = Math.max(1, Math.round(width * aspectRatio));
+            document.getElementById('sizeLabel').textContent = `Grid Size: ${width} x ${height}`;
+        }
+
+        function updateDiceSize() {
+            const size = parseInt(document.getElementById('diceSize').value);
+            document.getElementById('diceSizeValue').textContent = `Dice Size: ${size}px`;
+            if (diceGrid) {
+                createDiceArtPreview();
+            }
+        }
+
+        function updateDicePreview() {
+            if (diceGrid && diceGrid.length > 0) {
+                drawDicePreview(diceGrid[0][0]);
+                createDiceArtPreview();
+            } else {
+                drawDicePreview(3);
+            }
+        }
+
+        function drawDicePreview(value) {
+            const canvas = document.getElementById('dicePreview');
+            const ctx = canvas.getContext('2d');
+
+            canvas.width = 100;
+            canvas.height = 100;
+
+            ctx.clearRect(0, 0, 100, 100);
+
+            const color = diceColors[document.getElementById('diceColor').value];
+
+            // Draw dice background
+            ctx.fillStyle = color.bg;
+            ctx.fillRect(10, 10, 80, 80);
+
+            // Draw border
+            ctx.strokeStyle = "#7f8c8d";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(10, 10, 80, 80);
+
+            // Draw dots
+            ctx.fillStyle = color.dot;
+            const dotRadius = 6;
+            const faces = diceFaces[value];
+
+            for (const [x, y] of faces) {
+                const px = 10 + (x * 80);
+                const py = 10 + (y * 80);
+
+                ctx.beginPath();
+                ctx.arc(px, py, dotRadius, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+        }
+
+        function generateDiceArt() {
+            if (!currentImage) {
+                alert("Please load an image first");
+                return;
+            }
+
+            setStatus("Generating dice art...");
+
+            setTimeout(() => {
+                try {
+                    const width = parseInt(document.getElementById('diceWidth').value);
+                    const aspectRatio = currentImage.height / currentImage.width;
+                    const height = Math.max(1, Math.round(width * aspectRatio));
+                    totalDice = width * height;
+
+                    document.getElementById('diceCount').textContent = `Total Dice: ${totalDice}`;
+
+                    // Create processing canvas
+                    const processCanvas = document.createElement('canvas');
+                    const ctx = processCanvas.getContext('2d');
+
+                    processCanvas.width = width;
+                    processCanvas.height = height;
+
+                    // Draw and apply adjustments
+                    ctx.drawImage(currentImage, 0, 0, width, height);
+
+                    // Apply brightness and contrast adjustments
+                    const brightness = parseFloat(document.getElementById('brightness').value);
+                    const contrast = parseFloat(document.getElementById('contrast').value);
+
+                    if (brightness !== 1.0 || contrast !== 1.0) {
+                        const imageData = ctx.getImageData(0, 0, width, height);
+                        const data = imageData.data;
+
+                        for (let i = 0; i < data.length; i += 4) {
+                            // Apply brightness
+                            data[i] = data[i] * brightness;
+                            data[i + 1] = data[i + 1] * brightness;
+                            data[i + 2] = data[i + 2] * brightness;
+
+                            // Apply contrast
+                            data[i] = ((data[i] - 128) * contrast) + 128;
+                            data[i + 1] = ((data[i + 1] - 128) * contrast) + 128;
+                            data[i + 2] = ((data[i + 2] - 128) * contrast) + 128;
+
+                            // Clamp values
+                            data[i] = Math.max(0, Math.min(255, data[i]));
+                            data[i + 1] = Math.max(0, Math.min(255, data[i + 1]));
+                            data[i + 2] = Math.max(0, Math.min(255, data[i + 2]));
+                        }
+
+                        ctx.putImageData(imageData, 0, 0);
+                    }
+
+                    // Get processed image data
+                    const imageData = ctx.getImageData(0, 0, width, height);
+                    const data = imageData.data;
+
+                    // Create dice grid
+                    diceGrid = [];
+                    for (let y = 0; y < height; y++) {
+                        const row = [];
+                        for (let x = 0; x < width; x++) {
+                            const index = (y * width + x) * 4;
+                            const r = data[index];
+                            const g = data[index + 1];
+                            const b = data[index + 2];
+
+                            // Convert to grayscale
+                            const brightness = (r * 0.299 + g * 0.587 + b * 0.114);
+
+                            // Map brightness to dice value (1=lightest, 6=darkest)
+                            const diceValue = 6 - Math.floor(brightness / 42.5);
+                            const clampedValue = Math.max(1, Math.min(6, diceValue));
+                            row.push(clampedValue);
+                        }
+                        diceGrid.push(row);
+                    }
+
+                    // Create dice art preview
+                    createDiceArtPreview();
+
+                    // Update dice preview
+                    if (diceGrid.length > 0 && diceGrid[0].length > 0) {
+                        drawDicePreview(diceGrid[0][0]);
+                    }
+
+                    setStatus(`Dice art generated! Total dice: ${totalDice}`);
+
+                } catch (error) {
+                    console.error('Error generating dice art:', error);
+                    alert("Failed to generate dice art: " + error.message);
+                    setStatus("Error generating dice art");
+                }
+            }, 100);
+        }
+
+        function createDiceArtPreview() {
+            if (!diceGrid) return;
+
+            const canvas = document.getElementById('diceArtCanvas');
+            const ctx = canvas.getContext('2d');
+
+            const diceSize = parseInt(document.getElementById('diceSize').value);
+            const height = diceGrid.length;
+            const width = diceGrid[0].length;
+
+            // Calculate canvas size
+            const canvasWidth = width * diceSize;
+            const canvasHeight = height * diceSize;
+
+            // Set canvas size
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
+
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+            // Draw each dice
+            for (let y = 0; y < height; y++) {
+                for (let x = 0; x < width; x++) {
+                    const diceValue = diceGrid[y][x];
+                    drawDiceOnCanvas(ctx, x * diceSize, y * diceSize, diceSize, diceValue);
+                }
+            }
+
+            hidePlaceholder('diceArtPlaceholder');
+        }
+
+        function drawDiceOnCanvas(ctx, x, y, size, value) {
+            const color = diceColors[document.getElementById('diceColor').value];
+
+            // Draw dice background
+            ctx.fillStyle = color.bg;
+            ctx.fillRect(x, y, size, size);
+
+            // Draw border
+            ctx.strokeStyle = "#95a5a6";
+            ctx.lineWidth = 1;
+            ctx.strokeRect(x, y, size, size);
+
+            // Draw dots
+            ctx.fillStyle = color.dot;
+            const dotRadius = size * 0.08;
+            const faces = diceFaces[value];
+
+            for (const [px, py] of faces) {
+                const dotX = x + (px * size);
+                const dotY = y + (py * size);
+
+                ctx.beginPath();
+                ctx.arc(dotX, dotY, dotRadius, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+        }
+
+        function exportDiceGrid() {
+            if (!diceGrid) {
+                alert("Generate dice art first");
+                return;
+            }
+
+            let gridText = "";
+            for (const row of diceGrid) {
+                gridText += row.join(" ") + "\n";
+            }
+
+            const blob = new Blob([gridText], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `dice_grid_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.txt`;
+            link.click();
+
+            setStatus("Dice grid exported");
+        }
+
+        function exportImage() {
+            if (!diceGrid) {
+                alert("Generate dice art first");
+                return;
+            }
+
+            setStatus("Exporting image...");
+
+            setTimeout(() => {
+                try {
+                    const exportSize = 20; // Fixed size for export
+                    const height = diceGrid.length;
+                    const width = diceGrid[0].length;
+
+                    // Create export canvas
+                    const exportCanvas = document.createElement('canvas');
+                    const ctx = exportCanvas.getContext('2d');
+
+                    exportCanvas.width = width * exportSize;
+                    exportCanvas.height = height * exportSize;
+
+                    // Set white background
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+
+                    // Draw each dice
+                    for (let y = 0; y < height; y++) {
+                        for (let x = 0; x < width; x++) {
+                            const diceValue = diceGrid[y][x];
+                            drawDiceOnCanvas(ctx, x * exportSize, y * exportSize, exportSize, diceValue);
+                        }
+                    }
+
+                    // Download the image
+                    exportCanvas.toBlob(function(blob) {
+                        const link = document.createElement('a');
+                        link.href = URL.createObjectURL(blob);
+                        link.download = `dice_art_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.png`;
+                        link.click();
+                        setStatus("Image exported successfully");
+                    });
+
+                } catch (error) {
+                    alert("Failed to export image: " + error.message);
+                    setStatus("Error exporting image");
+                }
+            }, 100);
+        }
+
+        function closeDiceListModal() {
+            document.getElementById('diceListModal').style.display = 'none';
+        }
+
+        function generateDiceList() {
+            if (!diceGrid) {
+                alert("Generate dice art first");
+                return;
+            }
+
+            // Count dice values
+            const counts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
+            for (const row of diceGrid) {
+                for (const value of row) {
+                    counts[value]++;
+                }
+            }
+
+            // Create dice list text
+            let diceList = "Dice Requirements:\n";
+            diceList += "------------------\n";
+            for (let value = 1; value <= 6; value++) {
+                diceList += `Dice ${value}: ${counts[value]}\n`;
+            }
+            diceList += "------------------\n";
+            diceList += `Total Dice: ${totalDice}\n`;
+
+            document.getElementById('diceListText').value = diceList;
+            document.getElementById('diceListModal').style.display = 'flex';
+        }
+
+        function clearCanvas(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function showPlaceholder(placeholderId) {
+            document.getElementById(placeholderId).style.display = 'block';
+        }
+
+        function hidePlaceholder(placeholderId) {
+            document.getElementById(placeholderId).style.display = 'none';
+        }
+
+        // Event listeners for real-time updates
+        document.getElementById('diceWidth').addEventListener('input', updateSizeLabel);
+        document.getElementById('brightness').addEventListener('input', previewAdjustments);
+        document.getElementById('contrast').addEventListener('input', previewAdjustments);
+        document.getElementById('diceSize').addEventListener('input', function() {
+            const size = parseInt(this.value);
+            document.getElementById('diceSizeValue').textContent = `Dice Size: ${size}px`;
+            if (diceGrid) {
+                createDiceArtPreview();
+            }
+        });
+        document.getElementById('diceColor').addEventListener('change', updateDicePreview);
+
+        // Close modal when clicking outside
+        document.getElementById('diceListModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDiceListModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeDiceListModal();
+            }
+
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key) {
+                    case 'n':
+                        e.preventDefault();
+                        newProject();
+                        break;
+                    case 's':
+                        e.preventDefault();
+                        saveProject();
+                        break;
+                    case 'o':
+                        e.preventDefault();
+                        loadProject();
+                        break;
+                    case 'g':
+                        e.preventDefault();
+                        generateDiceArt();
+                        break;
+                }
+            }
+        });
+
+        // Initialize the application when the page loads
+        window.addEventListener('load', init);
+
+        // Drag and drop functionality
+        document.addEventListener('DOMContentLoaded', function() {
+            const body = document.body;
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                body.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                body.addEventListener(eventName, highlight, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                body.addEventListener(eventName, unhighlight, false);
+            });
+
+            function highlight(e) {
+                body.style.background = 'linear-gradient(135deg, #3498db 0%, #2980b9 100%)';
+            }
+
+            function unhighlight(e) {
+                body.style.background = 'linear-gradient(135deg, #2c3e50 0%, #34495e 100%)';
+            }
+
+            body.addEventListener('drop', handleDrop, false);
+
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+
+                if (files.length > 0) {
+                    const file = files[0];
+                    if (file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            const img = new Image();
+                            img.onload = function() {
+                                currentImage = img;
+                                displayImage(img);
+                                updateSizeLabel();
+                                setStatus(`Loaded image: ${file.name}`);
+                                document.getElementById('imagePathDisplay').textContent = file.name;
+                            };
+                            img.src = e.target.result;
+                        };
+                        reader.readAsDataURL(file);
+                    } else if (file.name.endsWith('.diceproj') || file.name.endsWith('.json')) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            try {
+                                const projectData = JSON.parse(e.target.result);
+
+                                // Restore project settings
+                                document.getElementById('diceWidth').value = projectData.diceWidth;
+                                document.getElementById('diceColor').value = projectData.diceColor;
+                                document.getElementById('brightness').value = projectData.brightness;
+                                document.getElementById('contrast').value = projectData.contrast;
+
+                                diceGrid = projectData.diceGrid;
+                                totalDice = projectData.totalDice;
+
+                                // Update UI
+                                updateSizeLabel();
+                                updateValueDisplays();
+                                document.getElementById('diceCount').textContent = `Total Dice: ${totalDice}`;
+
+                                if (diceGrid && diceGrid.length > 0) {
+                                    createDiceArtPreview();
+                                    drawDicePreview(diceGrid[0][0]);
+                                }
+
+                                setStatus("Project loaded via drag & drop");
+                            } catch (error) {
+                                alert("Failed to load project: " + error.message);
+                            }
+                        };
+                        reader.readAsText(file);
+                    }
+                }
+            }
+        });
+
+        // Touch/mobile support
+        function addTouchSupport() {
+            const sliders = document.querySelectorAll('input[type="range"]');
+            sliders.forEach(slider => {
+                slider.addEventListener('touchstart', function(e) {
+                    e.preventDefault();
+                });
+                slider.addEventListener('touchmove', function(e) {
+                    e.preventDefault();
+                    const touch = e.touches[0];
+                    const rect = this.getBoundingClientRect();
+                    const percent = (touch.clientX - rect.left) / rect.width;
+                    const min = parseFloat(this.min);
+                    const max = parseFloat(this.max);
+                    const value = min + (percent * (max - min));
+                    this.value = Math.max(min, Math.min(max, value));
+
+                    // Trigger the input event
+                    const event = new Event('input');
+                    this.dispatchEvent(event);
+                });
+            });
+        }
+
+        // Initialize touch support
+        document.addEventListener('DOMContentLoaded', addTouchSupport);
+
+        // Progressive Web App features
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                // Service worker registration would go here for PWA functionality
+            });
+        }
+
+        // Performance optimization: Debounce frequent operations
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+
+        // Apply debouncing to expensive operations
+        const debouncedPreviewAdjustments = debounce(previewAdjustments, 150);
+        const debouncedUpdateSizeLabel = debounce(updateSizeLabel, 100);
+
+        // Update event listeners to use debounced functions
+        document.getElementById('brightness').removeEventListener('input', previewAdjustments);
+        document.getElementById('contrast').removeEventListener('input', previewAdjustments);
+        document.getElementById('diceWidth').removeEventListener('input', updateSizeLabel);
+
+        document.getElementById('brightness').addEventListener('input', debouncedPreviewAdjustments);
+        document.getElementById('contrast').addEventListener('input', debouncedPreviewAdjustments);
+        document.getElementById('diceWidth').addEventListener('input', debouncedUpdateSizeLabel);
+
+        // Add visual feedback for buttons
+        document.addEventListener('DOMContentLoaded', function() {
+            const buttons = document.querySelectorAll('.button');
+            buttons.forEach(button => {
+                button.addEventListener('mousedown', function() {
+                    this.style.transform = 'translateY(1px)';
+                });
+                button.addEventListener('mouseup', function() {
+                    this.style.transform = 'translateY(-1px)';
+                });
+                button.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(-1px)';
+                });
+            });
+        });
+
+        // Error handling wrapper
+        function safeExecute(func, errorMessage) {
+            try {
+                return func();
+            } catch (error) {
+                console.error(errorMessage, error);
+                alert(errorMessage + ": " + error.message);
+                setStatus("Error occurred");
+            }
+        }
+
+        // Add help tooltips
+        function addTooltips() {
+            const tooltips = {
+                'diceWidth': 'Number of dice across the width of your image',
+                'brightness': 'Adjust image brightness before conversion',
+                'contrast': 'Adjust image contrast before conversion',
+                'diceColor': 'Color scheme for the dice faces',
+                'diceSize': 'Size of dice in the preview (does not affect export)'
+            };
+
+            Object.entries(tooltips).forEach(([id, text]) => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.title = text;
+                }
+            });
+        }
+
+        // Initialize tooltips
+        document.addEventListener('DOMContentLoaded', addTooltips);
+
+        // Advanced export with custom resolution
+        function exportImageCustomSize() {
+            if (!diceGrid) {
+                alert("Generate dice art first");
+                return;
+            }
+
+            const customSize = prompt("Enter dice size for export (pixels):", "20");
+            if (!customSize || isNaN(customSize)) return;
+
+            const exportSize = parseInt(customSize);
+            if (exportSize < 5 || exportSize > 100) {
+                alert("Please enter a size between 5 and 100 pixels");
+                return;
+            }
+
+            setStatus("Exporting custom sized image...");
+
+            setTimeout(() => {
+                try {
+                    const height = diceGrid.length;
+                    const width = diceGrid[0].length;
+
+                    // Create export canvas
+                    const exportCanvas = document.createElement('canvas');
+                    const ctx = exportCanvas.getContext('2d');
+
+                    exportCanvas.width = width * exportSize;
+                    exportCanvas.height = height * exportSize;
+
+                    // Set white background
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+
+                    // Draw each dice
+                    for (let y = 0; y < height; y++) {
+                        for (let x = 0; x < width; x++) {
+                            const diceValue = diceGrid[y][x];
+                            drawDiceOnCanvas(ctx, x * exportSize, y * exportSize, exportSize, diceValue);
+                        }
+                    }
+
+                    // Download the image
+                    exportCanvas.toBlob(function(blob) {
+                        const link = document.createElement('a');
+                        link.href = URL.createObjectURL(blob);
+                        link.download = `dice_art_${exportSize}px_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.png`;
+                        link.click();
+                        setStatus(`Custom image exported at ${exportSize}px per dice`);
+                    });
+
+                } catch (error) {
+                    alert("Failed to export custom image: " + error.message);
+                    setStatus("Error exporting custom image");
+                }
+            }, 100);
+        }
+
+        // Image format detection and optimization
+        function optimizeImageForProcessing(img) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+
+            // Limit image size for performance
+            const maxDimension = 1000;
+            let { width, height } = img;
+
+            if (width > maxDimension || height > maxDimension) {
+                const ratio = Math.min(maxDimension / width, maxDimension / height);
+                width *= ratio;
+                height *= ratio;
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            ctx.drawImage(img, 0, 0, width, height);
+
+            const optimizedImg = new Image();
+            optimizedImg.src = canvas.toDataURL();
+            return optimizedImg;
+        }
+
+        // Add visual loading indicators
+        function showLoadingIndicator(message) {
+            setStatus(message + "...");
+            document.body.style.cursor = 'wait';
+        }
+
+        function hideLoadingIndicator() {
+            document.body.style.cursor = 'default';
+        }
+
+        // Update generate function to use loading indicators
+        const originalGenerateDiceArt = generateDiceArt;
+        generateDiceArt = function() {
+            showLoadingIndicator("Generating dice art");
+            setTimeout(() => {
+                originalGenerateDiceArt();
+                hideLoadingIndicator();
+            }, 50);
+        };
+
+        // Add animation to dice preview
+        function animateDicePreview() {
+            const canvas = document.getElementById('dicePreview');
+            canvas.style.transition = 'transform 0.2s ease';
+            canvas.style.transform = 'scale(1.05)';
+            setTimeout(() => {
+                canvas.style.transform = 'scale(1)';
+            }, 200);
+        }
+
+        // Enhanced dice preview with animation
+        const originalDrawDicePreview = drawDicePreview;
+        drawDicePreview = function(value) {
+            originalDrawDicePreview(value);
+            animateDicePreview();
+        };
+    </script>
+</body>
+</html>
