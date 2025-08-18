@@ -2,7 +2,7 @@
 A sophisticated Python application that converts images into dice art mosaics. 
 
 
-![Dice Art Example](example.png) *(example image would go here)*
+![Dice Art Example](example.png) 
 
 A Python application that converts images into artistic representations using dice values.
 
