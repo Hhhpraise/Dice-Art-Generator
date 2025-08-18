@@ -31,6 +31,7 @@
             margin-bottom: 20px;
             backdrop-filter: blur(10px);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            position: relative;
         }
 
         .header h1 {
@@ -45,7 +46,46 @@
             font-size: 1.1rem;
             color: #bdc3c7;
             max-width: 800px;
-            margin: 0 auto;
+            margin: 0 auto 1.5rem;
+        }
+
+        .header-links {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .header-btn {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .header-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, #27ae60 0%, #219653 100%);
+        }
+
+        .portfolio-btn {
+            background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);
+        }
+
+        .portfolio-btn:hover {
+            background: linear-gradient(135deg, #8e44ad 0%, #7d3c98 100%);
         }
 
         .main-container {
@@ -400,6 +440,10 @@
             .dice-counts {
                 grid-template-columns: repeat(2, 1fr);
             }
+
+            .header-links {
+                flex-direction: column;
+            }
         }
 
         .dice-art-title {
@@ -439,6 +483,15 @@
     <div class="header">
         <h1><i class="fas fa-dice-d20"></i> Advanced Dice Art Generator</h1>
         <p>Transform any image into a stunning dice mosaic with customizable settings and export options</p>
+
+        <div class="header-links">
+            <a href="https://hhhpraise.github.io/pixelcraft-generator/" target="_blank" class="header-btn">
+                <i class="fas fa-project-diagram"></i> PixelCraft Generator
+            </a>
+            <a href="https://hhhpraise.github.io/portfolio/" target="_blank" class="header-btn portfolio-btn">
+                <i class="fas fa-user-circle"></i> View My Portfolio
+            </a>
+        </div>
     </div>
 
     <div class="main-container">
